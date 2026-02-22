@@ -286,15 +286,7 @@ a {
 }
 
 .design-text {
-    display: inline-block;
-    background-clip: text;
-    background-image: linear-gradient(
-        to right,
-        rgb(236, 72, 153),
-        rgb(59, 130, 246)
-    );
-    -webkit-background-clip: text;
-    color: transparent;
+    color: rgb(17, 24, 39);
     font-size: 36px;
     font-weight: 700;
     margin-top: 0px;
@@ -787,14 +779,22 @@ a {
     transition: all 0.2s ease;
 }
 
-.card > img {
+.card-image-red {
     border-radius: 9999px;
     border-color: rgb(236, 72, 153);
     border-width: 4px;
     border-style: solid;
     width: 128px;
     height: 128px;
-    box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3);
+}
+
+.card-image-blue {
+    border-radius: 9999px;
+    border-color: rgb(59, 130, 246);
+    border-width: 4px;
+    border-style: solid;
+    width: 128px;
+    height: 128px;
 }
 
 .card > p {
@@ -863,4 +863,16 @@ a {
     }
     .nav-toggle { display: flex; }
     .fancy-text { font-size: 20px; }
+}
+
+.logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 5px;
+    margin-top: 5px;
+    transition: filter 0.2s;
+}
+
+.logo:hover {
+    filter: drop-shadow(0 0 5px rgba(236, 72, 153, 0.7)) drop-shadow(0 0 5px rgba(59, 130, 246, 0.7));
 }
