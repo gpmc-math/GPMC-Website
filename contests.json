@@ -1,0 +1,34 @@
+[
+  {
+    "id": "gpmc-10-2025",
+    "name": "2025 GPMC 10",
+    "active": false,
+    "questionCount": 25,
+    "timeLimit": 75,
+    "pdfLink": "https://drive.google.com/file/d/1aOp5JqrBeooOI-7dBfJPoWLKMzVqgnZO/view?usp=sharing"
+  },
+  {
+    "id": "gpmc-12-2025",
+    "name": "2025 GPMC 12",
+    "active": false,
+    "questionCount": 25,
+    "timeLimit": 75,
+    "pdfLink": "https://drive.google.com/file/d/1jbY1aj3ieseqwaxJY8jgkLnKQ4qaAu8b/view?usp=sharing"
+  },
+  {
+    "id": "gpime-2026",
+    "name": "2026 GPIME",
+    "active": false,
+    "questionCount": 15,
+    "timeLimit": 180,
+    "pdfLink": "https://drive.google.com/file/d/1G6Ep3uvt1UEqyjxhITU0kxka_Wcn74BT/view?usp=sharing"
+  },
+  {
+    "id": "botb-2026",
+    "name": "2026 BotB",
+    "active": false,
+    "questionCount": 6,
+    "timeLimit": 60,
+    "pdfLink": "https://drive.google.com/file/d/16r8lqD2-RNHDeMx4Djk66TmWE16X0lV8/view?usp=sharing"
+  }
+]

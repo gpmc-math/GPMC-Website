@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Gentoo Penguin Math Organization ● Home</title>
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <main>
+            <nav class="nav">
+                <p class="fancy-text"><a href="index.html"><img src="pfps/logo.png" alt="GPMO Logo" class="logo"></a></p>
+                <ul class="nav-bar">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="past-tests.html" class="nav-link">Past Tests</a></li>
+                    <li><a href="team.html" class="nav-link">Team</a></li>
+                    <li><a href="contest.html" class="nav-link current-nav-link">Contests</a></li>
+                </ul>
+                <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                    <span class="hamburger" aria-hidden="true"></span>
+                </button>
+            </nav>
+            <div class="header-style header-style-1">
+                <h1>Contest Submission</h1>
+            </div>
+
+            <section class="contest-submission">
+                <div class="contest-submission-grid">
+                    <div class="contest-form-panel">
+                        <div class="contest-form-card">
+                            <label class="form-label" for="contestSelect">Select Contest</label>
+                            <select id="contestSelect" class="select-field">
+                                <option value="">Loading contests…</option>
+                            </select>
+
+                            <div class="contest-meta" id="contestMeta" aria-live="polite"></div>
+
+                            <div class="start-controls">
+                                <button id="startButton" class="button pink-button" type="button">Next</button>
+                            </div>
+
+                            <div id="contestFormFields" class="contest-form-fields hidden">
+                                <label class="form-label" for="usernameInput">AoPS Username</label>
+                                <input id="usernameInput" class="text-field" type="text" placeholder="Enter AoPS Username">
+
+                                <div id="questionList" class="question-list"></div>
+
+                                <div class="submit-controls">
+                                    <button id="submitButton" class="button pink-button" type="button">Submit</button>
+                                </div>
+                                <div id="submitStatus" class="submit-status" aria-live="polite"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="contest-preview-panel">
+                        <div class="preview-card">
+                            <h2 id="previewTitle">Contest Preview</h2>
+                            <div class="timer-row hidden" id="timerRow">
+                                <span>Time remaining:</span>
+                                <strong id="timerValue">00:00</strong>
+                            </div>
+                            <div class="contest-preview-details" id="contestPreviewDetails">
+                                <p class="preview-note">Choose a contest to see its PDF and question fields.</p>
+                            </div>
+
+                            <div class="pdf-preview hidden" id="pdfPreview">
+                                <iframe id="pdfFrame" src="" title="Contest PDF preview" loading="lazy"></iframe>
+                            </div>
+
+                            <div class="pdf-link-row hidden" id="pdfLinkRow">
+                                <a id="pdfLink" href="#" target="_blank" rel="noreferrer noopener">PDF link will appear here</a>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <footer class="copyright">© 2026 Gentoo Penguin Math Organization. All rights reserved.</footer>
+        </main>
+
+        <div class="modal-overlay hidden" id="startModalOverlay">
+            <div class="modal-card">
+                <h3>Confirm contest start</h3>
+                <p>Once you proceed the timer will start for <strong id="modalTimeLimit">0 minutes</strong>. If you leave this tab, you will be disqualified and the test will stop.</p>
+                <div class="modal-actions">
+                    <button id="cancelStartButton" class="button white-button" type="button">Cancel</button>
+                    <button id="confirmStartButton" class="button pink-button" type="button">Start contest</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay hidden" id="dqModalOverlay">
+            <div class="modal-card disqualified-card">
+                <h3>Disqualified</h3>
+                <p>You left the contest tab. Your test has been stopped and you can no longer continue.</p>
+            </div>
+        </div>
+
+        <script src="contest-submission.js"></script>
+    </body>
+</html>
