@@ -27,8 +27,8 @@
     "id": "botb-2026",
     "name": "2026 BotB",
     "active": false,
-    "questionCount": 6,
-    "timeLimit": 60,
+    "questionCount": 15,
+    "timeLimit": 180,
     "pdfLink": "https://drive.google.com/file/d/16r8lqD2-RNHDeMx4Djk66TmWE16X0lV8/view?usp=sharing"
   }
 ]
