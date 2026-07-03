@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('visibilitychange', handleVisibilityChange);
     });
 
-    fetch('./contests.json')
+    fetch('./assets/data/contests.json')
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to load contests.json');
