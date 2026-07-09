@@ -1,7 +1,0 @@
-<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">Timeline Pin Placeholder</title>
-  <desc id="desc">Placeholder pin icon for timeline milestones.</desc>
-  <circle cx="32" cy="32" r="26" fill="#ffffff" stroke="#d1d5db" stroke-width="2"/>
-  <circle cx="32" cy="32" r="12" fill="#f43f5e"/>
-  <path d="M32 8v12M32 44v12M8 32h12M44 32h12" stroke="#0e7490" stroke-width="3" stroke-linecap="round"/>
-</svg>
