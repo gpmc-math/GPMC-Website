@@ -1,0 +1,12 @@
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Math Grid Background Placeholder</title>
+  <desc id="desc">Subtle grid and geometry background pattern placeholder.</desc>
+  <rect width="600" height="600" fill="#f8fafc"/>
+  <g stroke="#cbd5e1" stroke-width="1" opacity="0.45">
+    <path d="M0 60H600M0 120H600M0 180H600M0 240H600M0 300H600M0 360H600M0 420H600M0 480H600M0 540H600"/>
+    <path d="M60 0V600M120 0V600M180 0V600M240 0V600M300 0V600M360 0V600M420 0V600M480 0V600M540 0V600"/>
+  </g>
+  <circle cx="130" cy="150" r="56" fill="none" stroke="#0ea5e9" stroke-width="2" opacity="0.5"/>
+  <path d="M390 420l70-120 80 120z" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0.5"/>
+  <path d="M75 500q95-70 190 0" fill="none" stroke="#14b8a6" stroke-width="2" opacity="0.5"/>
+</svg>
