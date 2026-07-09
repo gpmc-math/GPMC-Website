@@ -1682,6 +1682,47 @@ button {
     line-height: 1.6;
 }
 
+.mascot-showcase {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: var(--space-6);
+}
+
+.mascot-showcase-hero {
+    margin-top: var(--space-8);
+}
+
+.mascot-showcase-story,
+.mascot-showcase-team,
+.mascot-showcase-preview {
+    margin-top: var(--space-5);
+}
+
+.mascot-image {
+    display: block;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 26px rgba(15, 23, 42, 0.16));
+}
+
+.mascot-image-large {
+    max-width: min(220px, 42vw);
+}
+
+.mascot-image-medium {
+    max-width: min(180px, 34vw);
+}
+
+.mascot-image-small {
+    max-width: min(140px, 28vw);
+}
+
+[data-theme='dark'] .mascot-image {
+    filter: drop-shadow(0 18px 32px rgba(2, 6, 23, 0.5));
+}
+
 .facts-box,
 .our-story,
 .what-we-offer,
