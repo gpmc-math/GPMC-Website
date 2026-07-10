@@ -4,26 +4,33 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Gentoo Penguin Math Organization ● Home</title>
-        <link rel="stylesheet" href="./style.css">
+        <title>Gentoo Penguin Math Organization ● Contest Submission</title>
+        <link rel="stylesheet" href="./assets/css/style.css">
     </head>
     <body>
         <main>
             <nav class="nav">
-                <p class="fancy-text"><a href="index.html"><img src="pfps/logo.png" alt="GPMO Logo" class="logo"></a></p>
+                <p class="fancy-text"><a href="index.html"><img src="./assets/images/penguins/logo.png" alt="GPMO Logo" class="logo"></a></p>
                 <ul class="nav-bar">
                     <li><a href="index.html" class="nav-link">Home</a></li>
                     <li><a href="about.html" class="nav-link">About</a></li>
                     <li><a href="past-tests.html" class="nav-link">Past Tests</a></li>
+                    <li><a href="contest-portal.html" class="nav-link current-nav-link">Contest Portal</a></li>
                     <li><a href="team.html" class="nav-link">Team</a></li>
-                    <li><a href="contest.html" class="nav-link current-nav-link">Contests</a></li>
+                    <li><a href="https://discord.gg/maKuNTpXgc" class="nav-link" target="_blank" rel="noreferrer noopener">Discord</a></li>
                 </ul>
+                <button class="theme-toggle" type="button" aria-label="Switch color theme" aria-pressed="false">
+                    <img src="./assets/images/icons/sun.svg" alt="" aria-hidden="true" class="theme-icon theme-icon-sun">
+                    <img src="./assets/images/icons/moon.svg" alt="" aria-hidden="true" class="theme-icon theme-icon-moon" style="filter: invert(100%)">
+                    <span class="theme-toggle-text">Dark Mode</span>
+                </button>
                 <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
                     <span class="hamburger" aria-hidden="true"></span>
                 </button>
             </nav>
             <div class="header-style header-style-1">
                 <h1>Contest Submission</h1>
+                <p>When a round is live, this is where you lock in your answers and race the clock.</p>
             </div>
 
             <section class="contest-submission">
@@ -38,7 +45,7 @@
                             <div class="contest-meta" id="contestMeta" aria-live="polite"></div>
 
                             <div class="start-controls">
-                                <button id="startButton" class="button pink-button" type="button">Next</button>
+                                <button id="startButton" class="button pink-button" type="button">Start Round</button>
                             </div>
 
                             <div id="contestFormFields" class="contest-form-fields hidden">
@@ -64,6 +71,10 @@
                             </div>
                             <div class="contest-preview-details" id="contestPreviewDetails">
                                 <p class="preview-note">Choose a contest to see its PDF and question fields.</p>
+                            </div>
+
+                            <div class="mascot-showcase mascot-showcase-preview">
+                                <img src="./assets/images/penguins/noot-writing.png" alt="GPMO mascot writing a contest response" class="mascot-image mascot-image-small">
                             </div>
 
                             <div class="pdf-preview hidden" id="pdfPreview">
@@ -99,6 +110,7 @@
             </div>
         </div>
 
-        <script src="contest-submission.js"></script>
+        <script src="./assets/js/index.js"></script>
+        <script src="./assets/js/contest-submission.js"></script>
     </body>
 </html>
