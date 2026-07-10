@@ -151,7 +151,11 @@ a {
         font-size: var(--text-5xl);
     }
     .header-style > p {
-        font-size: var(--text-xl);
+        font-size: var(--text-lg);
+    }
+
+    .home-hero-copy > p {
+        font-size: var(--text-lg);
     }
 }
 
@@ -160,7 +164,11 @@ a {
         font-size: var(--text-6xl);
     }
     .header-style > p {
-        font-size: var(--text-2xl);
+        font-size: var(--text-xl);
+    }
+
+    .home-hero-copy > p {
+        font-size: var(--text-xl);
     }
 }
 
@@ -708,6 +716,8 @@ a {
     border-width: 0.8px;
     border-style: solid;
     transition: var(--transition-fast);
+    display: flex;
+    flex-direction: column;
 }
 
 .competition-box:hover {
@@ -780,6 +790,7 @@ a {
     align-items: center;
     justify-content: center;
     gap: var(--space-3);
+    margin-top: auto;
 }
 
 .test-button {
@@ -1017,6 +1028,8 @@ a {
     padding: var(--space-5);
     text-align: left;
     box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
 }
 
 .contest-card-header {
@@ -1053,6 +1066,11 @@ a {
     align-items: center;
     font-weight: var(--font-weight-semibold);
     font-size: var(--text-sm);
+}
+
+.contest-card > .contest-card-link,
+.contest-card > .contest-card-missing {
+    margin-top: auto;
 }
 
 .contest-card-link {
@@ -1512,7 +1530,12 @@ button {
 }
 
 .header-style > h1 {
-    font-size: clamp(2.3rem, 7vw, 4.8rem);
+    font-size: clamp(1.95rem, 5.8vw, 4rem);
+    letter-spacing: -0.03em;
+}
+
+.home-hero-copy > h1 {
+    font-size: clamp(1.95rem, 5.8vw, 4rem);
     letter-spacing: -0.03em;
 }
 
@@ -1520,6 +1543,37 @@ button {
     max-width: 760px;
     line-height: 1.75;
     color: rgba(255, 255, 255, 0.9);
+}
+
+.home-hero-copy > p {
+    max-width: 760px;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.header-style-home {
+    text-align: left;
+}
+
+.home-hero-layout {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.home-hero-copy .button-container {
+    justify-content: flex-start;
+}
+
+.mascot-showcase-hero-side {
+    margin-top: 0;
+}
+
+.mascot-image-hero-side {
+    max-width: min(405px, 40vw);
 }
 
 .button,
@@ -1695,7 +1749,8 @@ button {
 
 .mascot-showcase-story,
 .mascot-showcase-team,
-.mascot-showcase-preview {
+.mascot-showcase-preview,
+.mascot-showcase-timeline {
     margin-top: var(--space-5);
 }
 
@@ -1944,6 +1999,27 @@ button {
 
     .nav-link {
         border-radius: var(--radius-md);
+    }
+
+    .header-style-home {
+        text-align: center;
+    }
+
+    .home-hero-layout {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .home-hero-copy .button-container {
+        justify-content: center;
+    }
+
+    .mascot-showcase-hero-side {
+        margin-top: var(--space-2);
+    }
+
+    .mascot-image-hero-side {
+        max-width: min(255px, 64vw);
     }
 }
 
