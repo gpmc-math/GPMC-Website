@@ -1223,6 +1223,10 @@ a {
     border: 1px solid var(--neutral-200);
 }
 
+.submit-controls {
+    margin-top: var(--space-5);
+}
+
 .question-label {
     display: block;
     margin-bottom: var(--space-2);
