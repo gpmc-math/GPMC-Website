@@ -40,15 +40,17 @@
                 <div class="contest-submission-grid">
                     <div class="contest-form-panel">
                         <div class="contest-form-card">
-                            <label class="form-label" for="contestSelect">Select Contest</label>
-                            <select id="contestSelect" class="select-field">
-                                <option value="">Loading contests…</option>
-                            </select>
+                            <div class="contest-setup-controls">
+                                <label class="form-label" for="contestSelect">Select Contest</label>
+                                <select id="contestSelect" class="select-field">
+                                    <option value="">Loading contests…</option>
+                                </select>
 
-                            <div class="contest-meta" id="contestMeta" aria-live="polite"></div>
+                                <div class="contest-meta" id="contestMeta" aria-live="polite"></div>
 
-                            <div class="start-controls">
-                                <button id="startButton" class="button pink-button" type="button">Start Round</button>
+                                <div class="start-controls">
+                                    <button id="startButton" class="button pink-button" type="button">Start Round</button>
+                                </div>
                             </div>
 
                             <div id="contestFormFields" class="contest-form-fields hidden">
@@ -66,26 +68,18 @@
                     </div>
 
                     <aside class="contest-preview-panel">
+                        <div class="timer-row hidden" id="timerRow">
+                            <span>Time remaining:</span>
+                            <strong id="timerValue">00:00</strong>
+                        </div>
                         <div class="preview-card">
                             <h2 id="previewTitle">Contest Preview</h2>
-                            <div class="timer-row hidden" id="timerRow">
-                                <span>Time remaining:</span>
-                                <strong id="timerValue">00:00</strong>
-                            </div>
                             <div class="contest-preview-details" id="contestPreviewDetails">
                                 <p class="preview-note">Choose a contest to see its PDF and question fields.</p>
                             </div>
 
-                            <div class="mascot-showcase mascot-showcase-preview">
-                                <img src="./assets/images/penguins/noot-writing.png" alt="GPMO mascot writing a contest response" class="mascot-image mascot-image-small">
-                            </div>
-
                             <div class="pdf-preview hidden" id="pdfPreview">
                                 <iframe id="pdfFrame" src="" title="Contest PDF preview" loading="lazy"></iframe>
-                            </div>
-
-                            <div class="pdf-link-row hidden" id="pdfLinkRow">
-                                <a id="pdfLink" href="#" target="_blank" rel="noreferrer noopener">PDF link will appear here</a>
                             </div>
                         </div>
                     </aside>

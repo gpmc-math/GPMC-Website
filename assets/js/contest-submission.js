@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewDetails = document.getElementById('contestPreviewDetails');
     const pdfPreview = document.getElementById('pdfPreview');
     const pdfFrame = document.getElementById('pdfFrame');
-    const pdfLinkRow = document.getElementById('pdfLinkRow');
-    const pdfLink = document.getElementById('pdfLink');
+    const contestSubmissionGrid = document.querySelector('.contest-submission-grid');
     const questionList = document.getElementById('questionList');
     const submitButton = document.getElementById('submitButton');
     const submitStatus = document.getElementById('submitStatus');
     const startButton = document.getElementById('startButton');
     const contestFormFields = document.getElementById('contestFormFields');
+    const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
     const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxgG9PCYA_1PgKmnVBQuOG_pckFJGX75SRzMN9xS9_nNbtcvYBwYkaHyLDC6ugz-H6W-g/exec';
     const timerValue = document.getElementById('timerValue');
@@ -84,22 +84,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         for (let i = 1; i <= count; i += 1) {
             const block = document.createElement('div');
-            block.className = 'question-block';
+            block.className = 'question-field';
 
             const label = document.createElement('label');
             label.setAttribute('for', `answer-${i}`);
             label.textContent = `Question ${i}`;
             label.className = 'question-label';
 
-            const textarea = document.createElement('textarea');
-            textarea.id = `answer-${i}`;
-            textarea.name = `answer-${i}`;
-            textarea.rows = 4;
-            textarea.placeholder = `Write your answer for question ${i} here...`;
-            textarea.className = 'text-area';
+            const answerInput = document.createElement('input');
+            answerInput.id = `answer-${i}`;
+            answerInput.name = `answer-${i}`;
+            answerInput.type = 'text';
+            answerInput.inputMode = 'numeric';
+            answerInput.maxLength = 3;
+            answerInput.minLength = 3;
+            answerInput.pattern = '[0-9]{3}';
+            answerInput.required = true;
+            answerInput.placeholder = 'Enter an answer between 000-999.';
+            answerInput.className = 'text-field answer-input';
+            answerInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+            });
 
             block.appendChild(label);
-            block.appendChild(textarea);
+            block.appendChild(answerInput);
             fragment.appendChild(block);
         }
 
@@ -125,8 +133,6 @@ document.addEventListener('DOMContentLoaded', function () {
             previewTitle.textContent = 'Contest Preview';
             previewDetails.innerHTML = '<p class="preview-note">Choose an active contest to see its details and the question fields.</p>';
             pdfFrame.src = '';
-            pdfLink.textContent = 'PDF link will appear here';
-            pdfLink.href = '#';
             questionList.innerHTML = '';
             contestMeta.innerHTML = '';
             timerRow.classList.add('hidden');
@@ -137,25 +143,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         previewTitle.textContent = contest.name;
+        contestSubmissionGrid.classList.toggle('is-started', started);
         contestMeta.innerHTML = formatContestMeta(contest);
         previewDetails.innerHTML = `
             <p><strong>${contest.name}</strong></p>
             <p class="contest-status ${contest.active ? 'status-active' : 'status-inactive'}">${contest.active ? 'Currently active' : 'Not active'}</p>
-            ${started ? '<p class="preview-note">Embedded PDF preview may be blocked by Google Drive policies. Use the link below to open the file.</p>' : ''}
         `;
 
         if (started) {
-            pdfFrame.src = '';
-            pdfLink.href = contest.pdfLink;
-            pdfLink.textContent = 'Open contest PDF in Google Drive';
-            pdfPreview.classList.add('hidden');
-            pdfLinkRow.classList.remove('hidden');
+            pdfFrame.src = getGoogleDrivePreviewUrl(contest.pdfLink);
+            pdfPreview.classList.remove('hidden');
         } else {
             pdfFrame.src = '';
-            pdfLink.href = '#';
-            pdfLink.textContent = 'PDF link will appear here';
             pdfPreview.classList.add('hidden');
-            pdfLinkRow.classList.add('hidden');
         }
 
         if (!started) {
@@ -211,9 +211,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getSubmissionPayload() {
         const username = document.getElementById('usernameInput').value.trim();
-        const answers = Array.from(questionList.querySelectorAll('textarea')).map((textarea, index) => ({
+        const answers = Array.from(questionList.querySelectorAll('.answer-input')).map((answerInput, index) => ({
             question: index + 1,
-            answer: textarea.value.trim(),
+            answer: answerInput.value.trim(),
         }));
         const now = Date.now();
         const timeTakenSeconds = startTimestamp ? Math.floor((now - startTimestamp) / 1000) : 0;
@@ -251,6 +251,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const invalidAnswer = Array.from(questionList.querySelectorAll('.answer-input'))
+            .find((answerInput) => !/^[0-9]{3}$/.test(answerInput.value));
+        if (invalidAnswer) {
+            submitStatus.textContent = 'Each answer must contain exactly 3 digits.';
+            submitStatus.style.color = 'rgb(220, 38, 38)';
+            submitButton.disabled = false;
+            invalidAnswer.focus();
+            return;
+        }
+
         try {
             const response = await fetch(googleSheetEndpoint, {
                 method: 'POST',
@@ -266,12 +276,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitStatus.style.color = 'rgb(16, 185, 129)';
                 submitButton.disabled = true;
                 document.getElementById('usernameInput').disabled = true;
-                Array.from(questionList.querySelectorAll('textarea')).forEach((textarea) => {
-                    textarea.disabled = true;
+                Array.from(questionList.querySelectorAll('.answer-input')).forEach((answerInput) => {
+                    answerInput.disabled = true;
                 });
                 contestFormFields.classList.add('hidden');
                 timerRow.classList.add('hidden');
-                pdfLinkRow.classList.add('hidden');
+                contestSubmissionGrid.classList.remove('is-started');
+                contestSubmission.classList.remove('is-started');
                 previewTitle.textContent = 'Contest completed';
                 previewDetails.innerHTML = '<p class="preview-note">Contest completed; submission recorded.</p>';
                 document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -294,12 +305,13 @@ document.addEventListener('DOMContentLoaded', function () {
             submitStatus.style.color = 'rgb(16, 185, 129)';
             submitButton.disabled = true;
             document.getElementById('usernameInput').disabled = true;
-            Array.from(questionList.querySelectorAll('textarea')).forEach((textarea) => {
-                textarea.disabled = true;
+            Array.from(questionList.querySelectorAll('.answer-input')).forEach((answerInput) => {
+                answerInput.disabled = true;
             });
             contestFormFields.classList.add('hidden');
             timerRow.classList.add('hidden');
-            pdfLinkRow.classList.add('hidden');
+            contestSubmissionGrid.classList.remove('is-started');
+            contestSubmission.classList.remove('is-started');
             previewTitle.textContent = 'Contest completed';
             previewDetails.innerHTML = '<p class="preview-note">Contest completed; submission recorded.</p>';
             document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -373,10 +385,10 @@ document.addEventListener('DOMContentLoaded', function () {
         startButton.disabled = true;
         startButton.classList.add('hidden');
 
-        pdfFrame.src = getGoogleDrivePreviewUrl(selectedContest.pdfLink);
-        pdfLink.href = selectedContest.pdfLink;
+        contestSubmissionGrid.classList.add('is-started');
+        contestSubmission.classList.add('is-started');
+        pdfFrame.src = `${getGoogleDrivePreviewUrl(selectedContest.pdfLink)}?rm=minimal`;
         pdfPreview.classList.remove('hidden');
-        pdfLinkRow.classList.remove('hidden');
 
         if (questionList.childElementCount === 0) {
             questionList.appendChild(buildQuestionFields(selectedContest.questionCount));
