@@ -1151,10 +1151,21 @@ a {
 }
 
 .contest-submission-grid.is-started .pdf-preview {
+    position: relative;
     min-height: 0;
     border: 0;
     border-radius: 0;
     background: transparent;
+}
+
+.pdf-control-cover {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    width: 70px;
+    height: 60px;
+    background: #1D1E1F;
 }
 
 .contest-submission-grid.is-started .pdf-preview iframe {
