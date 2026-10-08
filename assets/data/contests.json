@@ -34,17 +34,17 @@
   {
     "id": "gpmc-10-2026",
     "name":"2026 GPMC 10",
-    "active": false,
+    "active": true,
     "questionCount": 25,
     "timeLimit": 75,
-    "pdfLink": "https://drive.google.com/file/d/1IiZBmCIlUoyi_AJFtilfULrHPEQ3huh0/view?usp=sharing"
+    "pdfLink": "https://drive.google.com/file/d/1rAMGl87f8C3z-Yc9cfHg2AWYRzzrvB_r/view?usp=sharing"
   },
   {
     "id": "gpmc-12-2026",
     "name":"2026 GPMC 12",
-    "active": false,
+    "active": true,
     "questionCount": 25,
     "timeLimit": 75,
-    "pdfLink": "https://drive.google.com/file/d/1JExMswBooEMKE-Cq9XZlnJYkE3BxvvSZ/view?usp=sharing"
+    "pdfLink": "https://drive.google.com/file/d/10IIzfB4XiI6l4T63ILqKlsmHb7gN8PzZ/view?usp=sharing"
   }
 ]
