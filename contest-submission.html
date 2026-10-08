@@ -53,10 +53,21 @@
                                 </div>
                             </div>
 
-                            <div id="contestFormFields" class="contest-form-fields hidden">
+                            <div id="contestEntryGate" class="contest-entry-gate hidden">
                                 <label class="form-label" for="usernameInput">AoPS Username</label>
-                                <input id="usernameInput" class="text-field" type="text" placeholder="Enter AoPS Username">
+                                <input id="usernameInput" class="text-field" type="text" autocomplete="username" placeholder="Enter AoPS Username">
 
+                                <label class="form-label" for="leaderboardOptIn">Would you like to be included in the leaderboard?</label>
+                                <select id="leaderboardOptIn" class="select-field">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+
+                                <button id="enterContestButton" class="button pink-button" type="button">Submit username</button>
+                                <div id="entryStatus" class="submit-status" aria-live="polite"></div>
+                            </div>
+
+                            <div id="contestFormFields" class="contest-form-fields hidden">
                                 <div id="questionList" class="question-list"></div>
 
                                 <div class="submit-controls">
@@ -88,16 +99,5 @@
 
             <footer class="copyright">© 2026 Gentoo Penguin Math Organization. All rights reserved.</footer>
         </main>
-
-        <div class="modal-overlay hidden" id="startModalOverlay">
-            <div class="modal-card">
-                <h3>Confirm contest start</h3>
-                <p>Once you proceed, the timer will start for <strong id="modalTimeLimit">0 minutes</strong>. We will track any time spent away from the tab for reporting.</p>
-                <div class="modal-actions">
-                    <button id="cancelStartButton" class="button white-button" type="button">Cancel</button>
-                    <button id="confirmStartButton" class="button pink-button" type="button">Start contest</button>
-                </div>
-            </div>
-        </div>
     </body>
 </html>

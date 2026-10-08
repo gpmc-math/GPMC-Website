@@ -1123,6 +1123,18 @@ a {
     display: none;
 }
 
+.contest-submission-grid.is-started .contest-entry-gate {
+    max-width: 440px;
+}
+
+.contest-submission-grid.is-started .contest-entry-gate .form-label {
+    margin-top: var(--space-4);
+}
+
+.contest-submission-grid.is-started .contest-entry-gate .form-label:first-child {
+    margin-top: 0;
+}
+
 .contest-submission-grid.is-started .contest-form-card,
 .contest-submission-grid.is-started .preview-card {
     padding: 0;

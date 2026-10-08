@@ -10,21 +10,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.getElementById('submitButton');
     const submitStatus = document.getElementById('submitStatus');
     const startButton = document.getElementById('startButton');
+    const contestEntryGate = document.getElementById('contestEntryGate');
+    const enterContestButton = document.getElementById('enterContestButton');
+    const entryStatus = document.getElementById('entryStatus');
+    const usernameInput = document.getElementById('usernameInput');
+    const leaderboardOptIn = document.getElementById('leaderboardOptIn');
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxgG9PCYA_1PgKmnVBQuOG_pckFJGX75SRzMN9xS9_nNbtcvYBwYkaHyLDC6ugz-H6W-g/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbz5r9feJoby-zg7GIinGFM-3yU8v9IBfF4p6nVRrm4dR0WQnLev1WMSZH69WFblNQRNDA/exec';
     const timerValue = document.getElementById('timerValue');
-    const modalOverlay = document.getElementById('startModalOverlay');
-    const modalTimeLimit = document.getElementById('modalTimeLimit');
-    const confirmStartButton = document.getElementById('confirmStartButton');
-    const cancelStartButton = document.getElementById('cancelStartButton');
 
     let contests = [];
     let selectedContest = null;
     let timerInterval = null;
     let remainingSeconds = 0;
+    let timerDeadline = 0;
     let started = false;
+    let testVisible = false;
+    let submissionFinished = false;
+    let submissionId = '';
+    let submissionSent = false;
+    let submissionInProgress = false;
+    let automaticSubmissionStarted = false;
     let startTimestamp = null;
     let totalOutOfTabMs = 0;
     let hiddenSince = null;
@@ -46,16 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const minutes = Math.floor(seconds / 60);
         const remaining = seconds % 60;
         return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
-    }
-
-    function openModal(modal) {
-        modal.classList.remove('hidden');
-        document.body.classList.add('modal-open');
-    }
-
-    function closeModal(modal) {
-        modal.classList.add('hidden');
-        document.body.classList.remove('modal-open');
     }
 
     function stopTimer() {
@@ -95,15 +93,12 @@ document.addEventListener('DOMContentLoaded', function () {
             answerInput.id = `answer-${i}`;
             answerInput.name = `answer-${i}`;
             answerInput.type = 'text';
-            answerInput.inputMode = 'numeric';
-            answerInput.maxLength = 3;
-            answerInput.minLength = 3;
-            answerInput.pattern = '[0-9]{3}';
-            answerInput.required = true;
-            answerInput.placeholder = 'Enter an answer between 000-999.';
+            answerInput.maxLength = 1;
+            answerInput.pattern = '[A-Ea-e]';
+            answerInput.placeholder = 'A-E';
             answerInput.className = 'text-field answer-input';
             answerInput.addEventListener('input', function () {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+                this.value = this.value.replace(/[^A-Ea-e]/g, '').slice(0, 1);
             });
 
             block.appendChild(label);
@@ -150,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <p class="contest-status ${contest.active ? 'status-active' : 'status-inactive'}">${contest.active ? 'Currently active' : 'Not active'}</p>
         `;
 
-        if (started) {
+        if (started && testVisible) {
             pdfFrame.src = getGoogleDrivePreviewUrl(contest.pdfLink);
             pdfPreview.classList.remove('hidden');
         } else {
@@ -167,13 +162,19 @@ document.addEventListener('DOMContentLoaded', function () {
             startButton.classList.remove('hidden');
             contestSelect.disabled = false;
         } else {
-            contestFormFields.classList.remove('hidden');
             timerRow.classList.remove('hidden');
             startButton.disabled = true;
             startButton.classList.add('hidden');
             contestSelect.disabled = true;
-            if (questionList.childElementCount === 0) {
-                questionList.appendChild(buildQuestionFields(contest.questionCount));
+            if (testVisible) {
+                contestEntryGate.classList.add('hidden');
+                contestFormFields.classList.remove('hidden');
+                if (questionList.childElementCount === 0) {
+                    questionList.appendChild(buildQuestionFields(contest.questionCount));
+                }
+            } else {
+                contestEntryGate.classList.remove('hidden');
+                contestFormFields.classList.add('hidden');
             }
         }
     }
@@ -194,26 +195,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function beginTimer() {
+        timerDeadline = Date.now() + remainingSeconds * 1000;
         timerValue.textContent = formatDuration(remainingSeconds);
         timerRow.classList.remove('hidden');
 
         timerInterval = setInterval(() => {
-            remainingSeconds -= 1;
+            remainingSeconds = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+            timerValue.textContent = formatDuration(remainingSeconds);
             if (remainingSeconds <= 0) {
-                stopTimer();
-                timerValue.textContent = '00:00';
-                alert('Time is up! The contest has ended.');
+                expireContest();
                 return;
             }
-            timerValue.textContent = formatDuration(remainingSeconds);
         }, 1000);
     }
 
-    function getSubmissionPayload() {
+    function expireContest() {
+        stopTimer();
+        remainingSeconds = 0;
+        timerValue.textContent = '00:00';
+        submitButton.disabled = true;
+        enterContestButton.disabled = true;
+        Array.from(questionList.querySelectorAll('.answer-input')).forEach((answerInput) => {
+            answerInput.disabled = true;
+        });
+        sendAutomaticSubmission(false);
+    }
+
+    function getSubmissionPayload(submissionType = 'manual') {
         const username = document.getElementById('usernameInput').value.trim();
         const answers = Array.from(questionList.querySelectorAll('.answer-input')).map((answerInput, index) => ({
             question: index + 1,
-            answer: answerInput.value.trim(),
+            answer: answerInput.value,
         }));
         const now = Date.now();
         const timeTakenSeconds = startTimestamp ? Math.floor((now - startTimestamp) / 1000) : 0;
@@ -223,12 +235,107 @@ document.addEventListener('DOMContentLoaded', function () {
             contestId: selectedContest?.id || '',
             contestName: selectedContest?.name || '',
             username,
+            questionCount: selectedContest?.questionCount || 0,
             timeTakenSeconds,
             timeAwaySeconds,
             timeLimitMinutes: selectedContest?.timeLimit || 0,
+            leaderboardOptIn: leaderboardOptIn.value,
+            submissionId,
+            submissionType,
             answers: JSON.stringify(answers),
             submittedAt: new Date(now).toISOString(),
         };
+    }
+
+    function completeSubmission(message) {
+        submissionSent = true;
+        submissionFinished = true;
+        submissionInProgress = false;
+        stopTimer();
+        started = false;
+        testVisible = false;
+        usernameInput.disabled = true;
+        leaderboardOptIn.disabled = true;
+        enterContestButton.disabled = true;
+        submitButton.disabled = true;
+        questionList.innerHTML = '';
+        contestEntryGate.classList.add('hidden');
+        contestFormFields.classList.add('hidden');
+        timerRow.classList.add('hidden');
+        pdfFrame.src = '';
+        pdfPreview.classList.add('hidden');
+        contestSubmissionGrid.classList.remove('is-started');
+        contestSubmission.classList.remove('is-started');
+        contestSelect.disabled = true;
+        startButton.disabled = true;
+        startButton.classList.remove('hidden');
+        previewTitle.textContent = 'Submission received';
+        const notice = document.createElement('p');
+        notice.className = 'preview-note';
+        notice.textContent = message;
+        previewDetails.replaceChildren(notice);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    function sendAutomaticSubmission(preferBeacon) {
+        if (!started || submissionSent || automaticSubmissionStarted) {
+            return;
+        }
+
+        automaticSubmissionStarted = true;
+        const payload = getSubmissionPayload('automatic');
+        const answers = JSON.parse(payload.answers);
+        payload.answers = JSON.stringify((answers.length > 0 ? answers : Array.from({ length: payload.questionCount }, (_, index) => ({
+            question: index + 1,
+            answer: '',
+        }))).map(({ question, answer }) => ({
+            question,
+            answer: /^[A-Ea-e]$/.test(answer) ? answer : '',
+        })));
+        const body = JSON.stringify(payload);
+        const statusTarget = testVisible ? submitStatus : entryStatus;
+        const queuedMessage = 'Automatic submission sent; this browser cannot verify Google received it.';
+        statusTarget.textContent = preferBeacon
+            ? 'Sending automatic submission before the page closes.'
+            : 'Time is up. Sending your answers automatically.';
+        statusTarget.style.color = 'rgb(55, 65, 81)';
+
+        if (preferBeacon) {
+            const queued = navigator.sendBeacon(
+                googleSheetEndpoint,
+                new Blob([body], { type: 'text/plain;charset=UTF-8' }),
+            );
+            if (queued) {
+                if (document.visibilityState !== 'hidden') {
+                    completeSubmission(queuedMessage);
+                } else {
+                    submissionSent = true;
+                }
+                return;
+            }
+        }
+
+        fetch(googleSheetEndpoint, {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body,
+        }).then(() => {
+            completeSubmission(queuedMessage);
+        }).catch(() => {
+            if (navigator.sendBeacon(googleSheetEndpoint, new Blob([body], { type: 'text/plain;charset=UTF-8' }))) {
+                if (document.visibilityState !== 'hidden') {
+                    completeSubmission(queuedMessage);
+                } else {
+                    submissionSent = true;
+                }
+                return;
+            }
+            automaticSubmissionStarted = false;
+            statusTarget.textContent = 'Automatic submission could not be sent. Check your connection before leaving this page.';
+            statusTarget.style.color = 'rgb(220, 38, 38)';
+        });
     }
 
     async function submitToGoogleSheet() {
@@ -239,32 +346,26 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        submitButton.disabled = true;
-        submitStatus.textContent = 'Submitting...';
-        submitStatus.style.color = 'rgb(55, 65, 81)';
-
         const payload = getSubmissionPayload();
-        if (!payload.username) {
-            submitStatus.textContent = 'Please enter your AoPS username before submitting.';
-            submitStatus.style.color = 'rgb(220, 38, 38)';
-            submitButton.disabled = false;
-            return;
-        }
-
         const invalidAnswer = Array.from(questionList.querySelectorAll('.answer-input'))
-            .find((answerInput) => !/^[0-9]{3}$/.test(answerInput.value));
+            .find((answerInput) => answerInput.value !== '' && !/^[A-Ea-e]$/.test(answerInput.value));
         if (invalidAnswer) {
-            submitStatus.textContent = 'Each answer must contain exactly 3 digits.';
+            submitStatus.textContent = 'Each answer must be one letter: A, B, C, D, E, or lowercase.';
             submitStatus.style.color = 'rgb(220, 38, 38)';
             submitButton.disabled = false;
             invalidAnswer.focus();
             return;
         }
 
+        submitButton.disabled = true;
+        submitStatus.textContent = 'Submitting...';
+        submitStatus.style.color = 'rgb(55, 65, 81)';
+        submissionInProgress = true;
         try {
             const response = await fetch(googleSheetEndpoint, {
                 method: 'POST',
                 mode: 'no-cors',
+                keepalive: true,
                 headers: {
                     'Content-Type': 'text/plain;charset=UTF-8',
                 },
@@ -272,20 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (response.type === 'opaque') {
-                submitStatus.textContent = 'Submission sent. Response is opaque due to CORS.';
-                submitStatus.style.color = 'rgb(16, 185, 129)';
-                submitButton.disabled = true;
-                document.getElementById('usernameInput').disabled = true;
-                Array.from(questionList.querySelectorAll('.answer-input')).forEach((answerInput) => {
-                    answerInput.disabled = true;
-                });
-                contestFormFields.classList.add('hidden');
-                timerRow.classList.add('hidden');
-                contestSubmissionGrid.classList.remove('is-started');
-                contestSubmission.classList.remove('is-started');
-                previewTitle.textContent = 'Contest completed';
-                previewDetails.innerHTML = '<p class="preview-note">Contest completed; submission recorded.</p>';
-                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                completeSubmission('Submission request sent. This browser cannot confirm whether Google recorded it.');
                 return;
             }
 
@@ -301,24 +389,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(`Submission failed (${response.status}): ${result.result || response.statusText}`);
             }
 
-            submitStatus.textContent = result.result || 'Submission successful!';
-            submitStatus.style.color = 'rgb(16, 185, 129)';
-            submitButton.disabled = true;
-            document.getElementById('usernameInput').disabled = true;
-            Array.from(questionList.querySelectorAll('.answer-input')).forEach((answerInput) => {
-                answerInput.disabled = true;
-            });
-            contestFormFields.classList.add('hidden');
-            timerRow.classList.add('hidden');
-            contestSubmissionGrid.classList.remove('is-started');
-            contestSubmission.classList.remove('is-started');
-            previewTitle.textContent = 'Contest completed';
-            previewDetails.innerHTML = '<p class="preview-note">Contest completed; submission recorded.</p>';
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            completeSubmission(result.result || 'Submission successful.');
         } catch (error) {
+            submissionInProgress = false;
             submitStatus.textContent = `Submission failed: ${error.message}`;
             submitStatus.style.color = 'rgb(220, 38, 38)';
-            submitButton.disabled = false;
+            submitButton.disabled = remainingSeconds <= 0;
             console.error('Submission error:', error);
         }
     }
@@ -326,6 +402,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function handleVisibilityChange() {
         if (!started) {
             return;
+        }
+
+        if (document.visibilityState === 'visible' && timerDeadline && Date.now() >= timerDeadline) {
+            expireContest();
         }
 
         if (document.visibilityState === 'hidden' && !hiddenSince) {
@@ -339,67 +419,77 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    startButton.addEventListener('click', function () {
-        if (!selectedContest) {
-            alert('Please choose an active contest first.');
+    function startContest() {
+        if (submissionFinished || !selectedContest || !selectedContest.active) {
+            submitStatus.textContent = 'Only active contests can be started.';
             return;
         }
 
-        if (!selectedContest.active) {
-            alert('That contest is not active right now. Please choose an active contest.');
-            return;
-        }
-
-        const displayLimit = typeof selectedContest.timeLimit === 'number'
-            ? `${selectedContest.timeLimit} minutes`
-            : selectedContest.timeLimit;
-        modalTimeLimit.textContent = displayLimit;
-        openModal(modalOverlay);
-    });
-
-    cancelStartButton.addEventListener('click', function () {
-        closeModal(modalOverlay);
-    });
-
-    confirmStartButton.addEventListener('click', function () {
-        closeModal(modalOverlay);
-
-        if (!selectedContest || !selectedContest.active) {
-            alert('Only active contests can be started.');
+        remainingSeconds = parseTimeLimit(selectedContest.timeLimit);
+        if (remainingSeconds <= 0) {
+            submitStatus.textContent = 'Unable to start contest because its time limit is invalid.';
             return;
         }
 
         started = true;
+        testVisible = false;
+        submissionFinished = false;
+        submissionSent = false;
+        submissionInProgress = false;
+        automaticSubmissionStarted = false;
+        submissionId = crypto.randomUUID();
         startTimestamp = Date.now();
         totalOutOfTabMs = 0;
         hiddenSince = null;
-        remainingSeconds = parseTimeLimit(selectedContest.timeLimit);
-
-        if (remainingSeconds <= 0) {
-            alert('Unable to start contest. Invalid time limit.');
-            return;
-        }
-
-        contestFormFields.classList.remove('hidden');
+        contestEntryGate.classList.remove('hidden');
+        entryStatus.textContent = '';
         contestSelect.disabled = true;
         startButton.disabled = true;
         startButton.classList.add('hidden');
 
         contestSubmissionGrid.classList.add('is-started');
         contestSubmission.classList.add('is-started');
+        pdfFrame.src = '';
+        pdfPreview.classList.add('hidden');
+        beginTimer();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    function enterContest() {
+        if (!usernameInput.value.trim()) {
+            entryStatus.textContent = 'Enter your AoPS username to continue.';
+            usernameInput.focus();
+            return;
+        }
+        if (!['Yes', 'No'].includes(leaderboardOptIn.value)) {
+            entryStatus.textContent = 'Choose Yes or No for leaderboard inclusion.';
+            leaderboardOptIn.focus();
+            return;
+        }
+
+        testVisible = true;
+        contestEntryGate.classList.add('hidden');
+        contestFormFields.classList.remove('hidden');
         pdfFrame.src = `${getGoogleDrivePreviewUrl(selectedContest.pdfLink)}?rm=minimal`;
         pdfPreview.classList.remove('hidden');
-
         if (questionList.childElementCount === 0) {
             questionList.appendChild(buildQuestionFields(selectedContest.questionCount));
         }
-
         submitButton.disabled = false;
-        submitButton.classList.remove('hidden');
+    }
 
-        beginTimer();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
+    function submitOnPageHide() {
+        sendAutomaticSubmission(true);
+    }
+
+    startButton.addEventListener('click', startContest);
+    enterContestButton.addEventListener('click', enterContest);
+    usernameInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            enterContest();
+        }
     });
+    window.addEventListener('pagehide', submitOnPageHide);
 
     fetch('./assets/data/contests.json')
         .then((response) => {
