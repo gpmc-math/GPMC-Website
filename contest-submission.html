@@ -7,6 +7,7 @@
         <title>Gentoo Penguin Math Organization ● Contest Submission</title>
         <script src="./assets/js/theme-init.js"></script>
         <script src="./assets/js/index.js" defer></script>
+        <script src="https://accounts.google.com/gsi/client" defer></script>
         <script src="./assets/js/contest-submission.js" defer></script>
         <link rel="stylesheet" href="./assets/css/style.css">
     </head>
@@ -54,6 +55,10 @@
                             </div>
 
                             <div id="contestEntryGate" class="contest-entry-gate hidden">
+                                <label class="form-label">Google Account</label>
+                                <div id="googleSignInButton"></div>
+                                <p id="googleAccountStatus" class="submit-status" aria-live="polite">Sign in with Google to continue.</p>
+
                                 <label class="form-label" for="usernameInput">AoPS Username</label>
                                 <input id="usernameInput" class="text-field" type="text" autocomplete="username" placeholder="Enter AoPS Username">
 
@@ -63,7 +68,7 @@
                                     <option value="Yes">Yes</option>
                                 </select>
 
-                                <button id="enterContestButton" class="button pink-button" type="button">Submit username</button>
+                                <button id="enterContestButton" class="button pink-button" type="button">Continue to test</button>
                                 <div id="entryStatus" class="submit-status" aria-live="polite"></div>
                             </div>
 

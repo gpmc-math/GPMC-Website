@@ -15,10 +15,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const entryStatus = document.getElementById('entryStatus');
     const usernameInput = document.getElementById('usernameInput');
     const leaderboardOptIn = document.getElementById('leaderboardOptIn');
+    const googleSignInButton = document.getElementById('googleSignInButton');
+    const googleAccountStatus = document.getElementById('googleAccountStatus');
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbz5r9feJoby-zg7GIinGFM-3yU8v9IBfF4p6nVRrm4dR0WQnLev1WMSZH69WFblNQRNDA/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbwI5YjvvbYe8r7_PgwyVQ3RVOUIYhjPV2BhZYC0aXtJgCgu8VDfkJXtfSALALUYtRg2Tg/exec';
+    const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
 
     let contests = [];
@@ -33,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let submissionSent = false;
     let submissionInProgress = false;
     let automaticSubmissionStarted = false;
+    let googleIdToken = '';
+    let googleSignInInitialized = false;
     let startTimestamp = null;
     let totalOutOfTabMs = 0;
     let hiddenSince = null;
@@ -56,6 +61,36 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
     }
 
+    function handleGoogleCredential(response) {
+        googleIdToken = response.credential;
+        googleAccountStatus.textContent = 'Google sign-in complete.';
+        googleAccountStatus.style.color = 'rgb(16, 185, 129)';
+        enterContestButton.disabled = false;
+    }
+
+    function initializeGoogleSignIn() {
+        if (googleSignInInitialized) {
+            return;
+        }
+        if (!window.google?.accounts?.id) {
+            googleAccountStatus.textContent = 'Google sign-in could not load. Check your connection and reload.';
+            return;
+        }
+
+        window.google.accounts.id.initialize({
+            client_id: GOOGLE_OAUTH_CLIENT_ID,
+            callback: handleGoogleCredential,
+            auto_select: false,
+        });
+        window.google.accounts.id.renderButton(googleSignInButton, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'signin_with',
+        });
+        googleSignInInitialized = true;
+    }
+
     function stopTimer() {
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -66,6 +101,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function getOutOfTabSeconds() {
         const currentHiddenMs = hiddenSince ? Date.now() - hiddenSince : 0;
         return Math.floor((totalOutOfTabMs + currentHiddenMs) / 1000);
+    }
+
+    function getOutOfTabMilliseconds(now = Date.now()) {
+        const currentHiddenMs = hiddenSince ? now - hiddenSince : 0;
+        return totalOutOfTabMs + currentHiddenMs;
     }
 
     function formatContestMeta(contest) {
@@ -228,8 +268,10 @@ document.addEventListener('DOMContentLoaded', function () {
             answer: answerInput.value,
         }));
         const now = Date.now();
-        const timeTakenSeconds = startTimestamp ? Math.floor((now - startTimestamp) / 1000) : 0;
-        const timeAwaySeconds = getOutOfTabSeconds();
+        const elapsedMilliseconds = startTimestamp ? now - startTimestamp : 0;
+        const timeAwayMilliseconds = getOutOfTabMilliseconds(now);
+        const timeTakenSeconds = Math.floor(Math.max(0, elapsedMilliseconds - timeAwayMilliseconds) / 1000);
+        const timeAwaySeconds = Math.floor(timeAwayMilliseconds / 1000);
 
         return {
             contestId: selectedContest?.id || '',
@@ -240,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
             timeAwaySeconds,
             timeLimitMinutes: selectedContest?.timeLimit || 0,
             leaderboardOptIn: leaderboardOptIn.value,
+            googleIdToken,
             submissionId,
             submissionType,
             answers: JSON.stringify(answers),
@@ -321,24 +364,15 @@ document.addEventListener('DOMContentLoaded', function () {
             keepalive: true,
             headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
             body,
-        }).then(() => {
-            completeSubmission(queuedMessage);
         }).catch(() => {
-            if (navigator.sendBeacon(googleSheetEndpoint, new Blob([body], { type: 'text/plain;charset=UTF-8' }))) {
-                if (document.visibilityState !== 'hidden') {
-                    completeSubmission(queuedMessage);
-                } else {
-                    submissionSent = true;
-                }
-                return;
-            }
             automaticSubmissionStarted = false;
-            statusTarget.textContent = 'Automatic submission could not be sent. Check your connection before leaving this page.';
+            statusTarget.textContent = 'The automatic submission could not be sent. Check your connection.';
             statusTarget.style.color = 'rgb(220, 38, 38)';
         });
+        completeSubmission(queuedMessage);
     }
 
-    async function submitToGoogleSheet() {
+    function submitToGoogleSheet() {
         if (!selectedContest || !selectedContest.active) {
             submitStatus.textContent = 'Only active contests can be submitted.';
             submitStatus.style.color = 'rgb(220, 38, 38)';
@@ -361,42 +395,19 @@ document.addEventListener('DOMContentLoaded', function () {
         submitStatus.textContent = 'Submitting...';
         submitStatus.style.color = 'rgb(55, 65, 81)';
         submissionInProgress = true;
-        try {
-            const response = await fetch(googleSheetEndpoint, {
-                method: 'POST',
-                mode: 'no-cors',
-                keepalive: true,
-                headers: {
-                    'Content-Type': 'text/plain;charset=UTF-8',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            if (response.type === 'opaque') {
-                completeSubmission('Submission request sent. This browser cannot confirm whether Google recorded it.');
-                return;
-            }
-
-            const text = await response.text();
-            let result;
-            try {
-                result = JSON.parse(text);
-            } catch (_) {
-                result = { result: text };
-            }
-
-            if (!response.ok) {
-                throw new Error(`Submission failed (${response.status}): ${result.result || response.statusText}`);
-            }
-
-            completeSubmission(result.result || 'Submission successful.');
-        } catch (error) {
-            submissionInProgress = false;
-            submitStatus.textContent = `Submission failed: ${error.message}`;
-            submitStatus.style.color = 'rgb(220, 38, 38)';
-            submitButton.disabled = remainingSeconds <= 0;
-            console.error('Submission error:', error);
-        }
+        fetch(googleSheetEndpoint, {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            headers: {
+                'Content-Type': 'text/plain;charset=UTF-8',
+            },
+            body: JSON.stringify(payload),
+        }).catch((error) => {
+            console.error('Submission request failed:', error);
+            previewDetails.textContent = 'The submission could not be sent. Check your connection and contact the contest organizers.';
+        });
+        completeSubmission('Submission sent.');
     }
 
     function handleVisibilityChange() {
@@ -431,17 +442,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        started = true;
+        started = false;
         testVisible = false;
         submissionFinished = false;
         submissionSent = false;
         submissionInProgress = false;
         automaticSubmissionStarted = false;
         submissionId = crypto.randomUUID();
-        startTimestamp = Date.now();
+        startTimestamp = null;
         totalOutOfTabMs = 0;
         hiddenSince = null;
+        googleIdToken = '';
+        googleAccountStatus.textContent = 'Sign in with Google to continue.';
+        googleAccountStatus.style.color = '';
+        enterContestButton.disabled = false;
         contestEntryGate.classList.remove('hidden');
+        initializeGoogleSignIn();
         entryStatus.textContent = '';
         contestSelect.disabled = true;
         startButton.disabled = true;
@@ -451,8 +467,6 @@ document.addEventListener('DOMContentLoaded', function () {
         contestSubmission.classList.add('is-started');
         pdfFrame.src = '';
         pdfPreview.classList.add('hidden');
-        beginTimer();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     function enterContest() {
@@ -461,12 +475,22 @@ document.addEventListener('DOMContentLoaded', function () {
             usernameInput.focus();
             return;
         }
+        if (!googleIdToken) {
+            entryStatus.textContent = 'Sign in with Google before continuing.';
+            googleSignInButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
         if (!['Yes', 'No'].includes(leaderboardOptIn.value)) {
             entryStatus.textContent = 'Choose Yes or No for leaderboard inclusion.';
             leaderboardOptIn.focus();
             return;
         }
 
+        remainingSeconds = parseTimeLimit(selectedContest.timeLimit);
+        started = true;
+        startTimestamp = Date.now();
+        totalOutOfTabMs = 0;
+        hiddenSince = null;
         testVisible = true;
         contestEntryGate.classList.add('hidden');
         contestFormFields.classList.remove('hidden');
@@ -476,6 +500,8 @@ document.addEventListener('DOMContentLoaded', function () {
             questionList.appendChild(buildQuestionFields(selectedContest.questionCount));
         }
         submitButton.disabled = false;
+        beginTimer();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     function submitOnPageHide() {
