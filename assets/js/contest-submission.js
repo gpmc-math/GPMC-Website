@@ -14,13 +14,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const enterContestButton = document.getElementById('enterContestButton');
     const entryStatus = document.getElementById('entryStatus');
     const usernameInput = document.getElementById('usernameInput');
+    const discordUsernameInput = document.getElementById('discordUsernameInput');
     const leaderboardOptIn = document.getElementById('leaderboardOptIn');
     const googleSignInButton = document.getElementById('googleSignInButton');
     const googleAccountStatus = document.getElementById('googleAccountStatus');
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbwI5YjvvbYe8r7_PgwyVQ3RVOUIYhjPV2BhZYC0aXtJgCgu8VDfkJXtfSALALUYtRg2Tg/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbznBwvdACLwDSWx2Q0xVK9w7-3bmO1djEI3f7OTIVC3qrqiX3-YYxm2DmtbEqgaIQJ6Xw/exec';
     const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
 
@@ -277,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
             contestId: selectedContest?.id || '',
             contestName: selectedContest?.name || '',
             username,
+            discordUsername: discordUsernameInput.value.trim(),
             questionCount: selectedContest?.questionCount || 0,
             timeTakenSeconds,
             timeAwaySeconds,
