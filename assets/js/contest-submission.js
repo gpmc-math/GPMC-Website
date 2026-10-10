@@ -16,12 +16,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const usernameInput = document.getElementById('usernameInput');
     const discordUsernameInput = document.getElementById('discordUsernameInput');
     const leaderboardOptIn = document.getElementById('leaderboardOptIn');
+    const leaderboardThresholdField = document.getElementById('leaderboardThresholdField');
+    const leaderboardThreshold = document.getElementById('leaderboardThreshold');
     const googleSignInButton = document.getElementById('googleSignInButton');
     const googleAccountStatus = document.getElementById('googleAccountStatus');
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbznBwvdACLwDSWx2Q0xVK9w7-3bmO1djEI3f7OTIVC3qrqiX3-YYxm2DmtbEqgaIQJ6Xw/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxAjR4tAa4yUv0bByvuSd6mVc8BfRkK5QvuaHpYKkpsuCuRPNKlAXXGSyFq7o4HQatq5A/exec';
     const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
 
@@ -283,7 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
             timeTakenSeconds,
             timeAwaySeconds,
             timeLimitMinutes: selectedContest?.timeLimit || 0,
-            leaderboardOptIn: leaderboardOptIn.value,
+            leaderboardOptIn: leaderboardOptIn.value === 'threshold'
+                ? `Yes if my score is >= ${leaderboardThreshold.value}`
+                : leaderboardOptIn.value,
             googleIdToken,
             submissionId,
             submissionType,
@@ -483,9 +487,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         if (!['Yes', 'No'].includes(leaderboardOptIn.value)) {
-            entryStatus.textContent = 'Choose Yes or No for leaderboard inclusion.';
-            leaderboardOptIn.focus();
-            return;
+            if (leaderboardOptIn.value !== 'threshold') {
+                entryStatus.textContent = 'Choose an option for leaderboard inclusion.';
+                leaderboardOptIn.focus();
+                return;
+            }
+            if (!leaderboardThreshold.value || !Number.isInteger(Number(leaderboardThreshold.value)) || Number(leaderboardThreshold.value) < 0) {
+                entryStatus.textContent = 'Enter a nonnegative whole-number score threshold.';
+                leaderboardThreshold.focus();
+                return;
+            }
         }
 
         remainingSeconds = parseTimeLimit(selectedContest.timeLimit);
@@ -512,6 +523,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     startButton.addEventListener('click', startContest);
     enterContestButton.addEventListener('click', enterContest);
+    leaderboardOptIn.addEventListener('change', () => {
+        const needsThreshold = leaderboardOptIn.value === 'threshold';
+        leaderboardThresholdField.classList.toggle('hidden', !needsThreshold);
+        leaderboardThreshold.required = needsThreshold;
+        if (!needsThreshold) {
+            leaderboardThreshold.value = '';
+        }
+    });
     usernameInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             enterContest();

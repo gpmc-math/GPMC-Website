@@ -69,7 +69,13 @@
                                 <select id="leaderboardOptIn" class="select-field">
                                     <option value="No">No</option>
                                     <option value="Yes">Yes</option>
+                                    <option value="threshold">Yes if my score is at least X</option>
                                 </select>
+
+                                <div id="leaderboardThresholdField" class="hidden">
+                                    <label class="form-label" for="leaderboardThreshold">Minimum score for leaderboard inclusion</label>
+                                    <input id="leaderboardThreshold" class="text-field" type="number" min="0" step="1" inputmode="numeric" placeholder="Enter score threshold">
+                                </div>
 
                                 <button id="enterContestButton" class="button pink-button" type="button">Continue to test</button>
                                 <div id="entryStatus" class="submit-status" aria-live="polite"></div>
