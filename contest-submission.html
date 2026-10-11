@@ -67,11 +67,13 @@
 
                                 <label class="form-label" for="leaderboardOptIn">Would you like to be included in the leaderboard?</label>
                                 <select id="leaderboardOptIn" class="select-field">
-                                    <option value="No">No</option>
                                     <option value="Yes">Yes</option>
-                                    <option value="Anonymous">Anonymous</option>
                                     <option value="threshold">Yes if my score is at least X</option>
+                                    <option value="Anonymous">Anonymous</option>
+                                    <option value="Unofficial" style="color: red;">Unofficial</option>
                                 </select>
+
+                                <div style="margin-bottom: 12px;"><b>Note: </b>We strongly discourage selecting the Unofficial option (rather, please consider choosing Anonymous).</div>
 
                                 <div id="leaderboardThresholdField" class="hidden">
                                     <label class="form-label" for="leaderboardThreshold">Minimum score for leaderboard inclusion</label>

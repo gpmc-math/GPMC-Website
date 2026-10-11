@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbzi3uM3enutl301DBi6mXcCu1-KMAJjCy9lMAfs9_gHEFP-28iBMVNrjOw9jjj_JivTYQ/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxeSxjkIWpkPdAfVcvzTggJxoTxgsgu8K9Azv7dErossJasLR1qFeb6_TNYemrtG8nqbw/exec';
     const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
 
@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function () {
             googleSignInButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
-        if (!['Yes', 'No', 'Anonymous'].includes(leaderboardOptIn.value)) {
+        if (!['Yes', 'Unofficial', 'Anonymous'].includes(leaderboardOptIn.value)) {
             if (leaderboardOptIn.value !== 'threshold') {
                 entryStatus.textContent = 'Choose an option for leaderboard inclusion.';
                 leaderboardOptIn.focus();
