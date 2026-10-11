@@ -300,6 +300,9 @@ document.addEventListener('DOMContentLoaded', function () {
         submissionSent = true;
         submissionFinished = true;
         submissionInProgress = false;
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        }
         stopTimer();
         started = false;
         testVisible = false;
@@ -497,6 +500,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 leaderboardThreshold.focus();
                 return;
             }
+        }
+
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
         }
 
         remainingSeconds = parseTimeLimit(selectedContest.timeLimit);
