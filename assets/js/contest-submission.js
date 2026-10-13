@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxtZSIWGmBarTc6Ds6_oi-FLb8U8aFRu1kIPDHgG6bss6mXZjWs_815tQJJNYAPu0XF/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxtZSIWGmBarTc6Ds6_oi-FLb8U8aFRu1kIPDHgG6bss6mXZjWs_815tQJJNYAPu0XF/exec?authuser=0';
     const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
     const AUTH_SESSION_POLL_ATTEMPTS = 20;
@@ -71,6 +71,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const callbackName = `googleAuth${crypto.randomUUID().replace(/-/g, '')}`;
             const script = document.createElement('script');
             let timeoutId;
+            script.crossOrigin = 'anonymous';
+
+            const fail = (message) => {
+                clearTimeout(timeoutId);
+                script.remove();
+                delete window[callbackName];
+                reject(new Error(message));
+            };
 
             window[callbackName] = (result) => {
                 clearTimeout(timeoutId);
@@ -86,13 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             script.onerror = () => {
-                clearTimeout(timeoutId);
-                script.remove();
-                delete window[callbackName];
-                reject(new Error('Could not confirm Google sign-in with the server.'));
+                fail('Google sign-in verification request failed to load. Check the checkGoogleLogin request in your browser Network panel.');
             };
-            script.src = `${googleSheetEndpoint}?action=checkGoogleLogin&sessionId=${encodeURIComponent(sessionId)}&callback=${callbackName}`;
-            timeoutId = setTimeout(() => script.onerror(), 10000);
+            script.src = `${googleSheetEndpoint}&action=checkGoogleLogin&sessionId=${encodeURIComponent(sessionId)}&callback=${callbackName}`;
+            timeoutId = setTimeout(() => fail('Google sign-in verification timed out: the server did not return a callback within 10 seconds. Please try again.'), 10000);
             document.head.appendChild(script);
         });
     }
@@ -108,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
             await fetch(googleSheetEndpoint, {
                 method: 'POST',
                 mode: 'no-cors',
+                credentials: 'omit',
                 headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
                 body: JSON.stringify({
                     action: 'verifyGoogleLogin',
