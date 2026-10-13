@@ -44,7 +44,7 @@
     "name":"2026 GPMC 12",
     "active": true,
     "questionCount": 25,
-    "timeLimit": 75,
+    "timeLimit": 0.15,
     "pdfLink": "https://drive.google.com/file/d/1AvTDc7xKSSPQh7yuM9y-tFopb3o3S4Bz/view?usp=sharing"
   }
 ]
