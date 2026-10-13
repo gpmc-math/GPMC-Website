@@ -23,9 +23,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const contestFormFields = document.getElementById('contestFormFields');
     const contestSubmission = document.querySelector('.contest-submission');
     const timerRow = document.getElementById('timerRow');
-    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxeSxjkIWpkPdAfVcvzTggJxoTxgsgu8K9Azv7dErossJasLR1qFeb6_TNYemrtG8nqbw/exec';
+    const googleSheetEndpoint = 'https://script.google.com/macros/s/AKfycbxtZSIWGmBarTc6Ds6_oi-FLb8U8aFRu1kIPDHgG6bss6mXZjWs_815tQJJNYAPu0XF/exec';
     const GOOGLE_OAUTH_CLIENT_ID = '77450154299-8qgioq80vpjiv7vpf6s9tvg1ogbbihct.apps.googleusercontent.com';
     const timerValue = document.getElementById('timerValue');
+    const AUTH_SESSION_POLL_ATTEMPTS = 20;
 
     let contests = [];
     let selectedContest = null;
@@ -39,7 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let submissionSent = false;
     let submissionInProgress = false;
     let automaticSubmissionStarted = false;
-    let googleIdToken = '';
+    let googleAuthSessionId = '';
+    let googleEmail = '';
     let googleSignInInitialized = false;
     let startTimestamp = null;
     let totalOutOfTabMs = 0;
@@ -64,11 +66,65 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
     }
 
-    function handleGoogleCredential(response) {
-        googleIdToken = response.credential;
-        googleAccountStatus.textContent = 'Google sign-in complete.';
-        googleAccountStatus.style.color = 'rgb(16, 185, 129)';
-        enterContestButton.disabled = false;
+    function pollGoogleAuthSession(sessionId, attemptsRemaining = AUTH_SESSION_POLL_ATTEMPTS) {
+        return new Promise((resolve, reject) => {
+            const callbackName = `googleAuth${crypto.randomUUID().replace(/-/g, '')}`;
+            const script = document.createElement('script');
+            let timeoutId;
+
+            window[callbackName] = (result) => {
+                clearTimeout(timeoutId);
+                script.remove();
+                delete window[callbackName];
+                if (result.verified && result.email) {
+                    resolve(result.email);
+                } else if (result.pending && attemptsRemaining > 1) {
+                    setTimeout(() => pollGoogleAuthSession(sessionId, attemptsRemaining - 1).then(resolve, reject), 500);
+                } else {
+                    reject(new Error(result.error || 'Google account verification failed. Please sign in again.'));
+                }
+            };
+
+            script.onerror = () => {
+                clearTimeout(timeoutId);
+                script.remove();
+                delete window[callbackName];
+                reject(new Error('Could not confirm Google sign-in with the server.'));
+            };
+            script.src = `${googleSheetEndpoint}?action=checkGoogleLogin&sessionId=${encodeURIComponent(sessionId)}&callback=${callbackName}`;
+            timeoutId = setTimeout(() => script.onerror(), 10000);
+            document.head.appendChild(script);
+        });
+    }
+
+    async function handleGoogleCredential(response) {
+        googleAccountStatus.textContent = 'Verifying Google account...';
+        googleAccountStatus.style.color = 'rgb(55, 65, 81)';
+        enterContestButton.disabled = true;
+        googleAuthSessionId = crypto.randomUUID();
+        googleEmail = '';
+
+        try {
+            await fetch(googleSheetEndpoint, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                body: JSON.stringify({
+                    action: 'verifyGoogleLogin',
+                    idToken: response.credential,
+                    authSessionId: googleAuthSessionId,
+                }),
+            });
+            googleEmail = await pollGoogleAuthSession(googleAuthSessionId);
+            googleAccountStatus.textContent = `Signed in as ${googleEmail}`;
+            googleAccountStatus.style.color = 'rgb(16, 185, 129)';
+            enterContestButton.disabled = false;
+        } catch (error) {
+            googleAuthSessionId = '';
+            googleEmail = '';
+            googleAccountStatus.textContent = error.message;
+            googleAccountStatus.style.color = 'rgb(220, 38, 38)';
+        }
     }
 
     function initializeGoogleSignIn() {
@@ -288,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
             leaderboardOptIn: leaderboardOptIn.value === 'threshold'
                 ? `Yes if my score is >= ${leaderboardThreshold.value}`
                 : leaderboardOptIn.value,
-            googleIdToken,
+            googleAuthSessionId,
             submissionId,
             submissionType,
             answers: JSON.stringify(answers),
@@ -461,7 +517,8 @@ document.addEventListener('DOMContentLoaded', function () {
         startTimestamp = null;
         totalOutOfTabMs = 0;
         hiddenSince = null;
-        googleIdToken = '';
+        googleAuthSessionId = '';
+        googleEmail = '';
         googleAccountStatus.textContent = 'Sign in with Google to continue.';
         googleAccountStatus.style.color = '';
         enterContestButton.disabled = false;
@@ -484,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function () {
             usernameInput.focus();
             return;
         }
-        if (!googleIdToken) {
+        if (!googleAuthSessionId || !googleEmail) {
             entryStatus.textContent = 'Sign in with Google before continuing.';
             googleSignInButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
