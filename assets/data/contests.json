@@ -34,7 +34,7 @@
   {
     "id": "gpmc-10-2026",
     "name":"2026 GPMC 10",
-    "active": true,
+    "active": false,
     "questionCount": 25,
     "timeLimit": 75,
     "pdfLink": "https://drive.google.com/file/d/1JDj7jSeoEUAiITZwZ7y4E5-HGDjEFcBa/view?usp=sharing"
@@ -42,7 +42,7 @@
   {
     "id": "gpmc-12-2026",
     "name":"2026 GPMC 12",
-    "active": true,
+    "active": false,
     "questionCount": 25,
     "timeLimit": 75,
     "pdfLink": "https://drive.google.com/file/d/1AvTDc7xKSSPQh7yuM9y-tFopb3o3S4Bz/view?usp=sharing"
