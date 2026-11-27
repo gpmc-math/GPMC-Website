@@ -1745,6 +1745,12 @@ button {
     padding-bottom: clamp(56px, 8vw, 96px);
 }
 
+.header-style-home ~ .statistics,
+.header-style-home ~ .timeline-section,
+.header-style-home ~ .ready-to-challenge {
+    border-top: 1px solid var(--line);
+}
+
 .timeline-section {
     text-align: center;
 }
