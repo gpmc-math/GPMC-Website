@@ -1751,6 +1751,10 @@ button {
     border-top: 1px solid var(--line);
 }
 
+.header-style-contest-portal ~ .contest-box-container + .contest-box-container {
+    border-top: 1px solid var(--line);
+}
+
 .timeline-section {
     text-align: center;
 }
